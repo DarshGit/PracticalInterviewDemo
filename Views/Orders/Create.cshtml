@@ -7,7 +7,6 @@
     ViewBag.ProductNames = new List<SelectListItem>();
     ViewData["AllProducts"] = ViewBag.AllProducts;
     ViewData["TaxMaster"] = ViewBag.TaxMaster;
-
 }
 
 <!DOCTYPE html>
@@ -25,11 +24,13 @@
             <div class="form-group">
                 <label for="Category">Category:</label>
                 @Html.DropDownListFor(model => model.Category, ViewBag.CategoryProducts as List<SelectListItem>, "Select a Category", new { @class = "form-control" , onchange = "handleCategoryChange()"})
+                @Html.ValidationMessageFor(model => model.Category, "", new { @class = "text-danger" })
             </div>
 
             <div class="form-group">
                 <label for="ProductName">Product Name:</label>
                 @Html.DropDownListFor(model => model.ProductName, ViewBag.ProductNames as List<SelectListItem>, "Select a Product", new { @class = "form-control", onchange = "populateFields()"})
+                @Html.ValidationMessageFor(model => model.ProductName, "", new { @class = "text-danger" })
             </div>
 
             <div class="form-group">
@@ -96,33 +97,40 @@
             </div>
 
             <div class="form-group">
-                <label for="ReceiveStatusUpdate">Receive Status Update:</label>
+                <label for="ReceiveStatusUpdate" style="margin-right:30px">Receive Status Update:</label>
                 <input type="checkbox" id="ReceiveStatusUpdate" name="ReceiveStatusUpdate" class="form-check-input" onchange="updateCheckboxValue(this)" />
             </div>
 
             <div class="form-group">
-                <label for="SigantureRequired">Signature Required:</label>
+                <label for="SigantureRequired" style="margin-right:30px">Signature Required:</label>
                 <input type="checkbox" id="SignatureRequired" name="SignatureRequired" class="form-check-input" onchange="updateCheckboxValue(this)" />
             </div>
 
             <div class="form-group">
                 <label for="EstimatedDelivery">Estimated Delivery:</label>
-                <input type="date" id="EstimatedDelivery" name="EstimatedDelivery" class="form-control" />
+                <input type="date" id="EstimatedDelivery" name="EstimatedDelivery" class="form-control" readonly/>
+                <span asp-validation-for="EstimatedDelivery" class="text-danger"></span>
+
             </div>
 
             <div class="form-group">
                 <label for="CustomerName">Customer Name:</label>
                 <input type="text" id="CustomerName" name="CustomerName" class="form-control" />
+                <span asp-validation-for="CustomerName" class="text-danger"></span>
+
             </div>
 
             <div class="form-group">
                 <label for="DateOFBirth">Date of Birth:</label>
                 <input type="date" id="DateOFBirth" name="DateOFBirth" class="form-control" />
+                <span asp-validation-for="DateOFBirth" class="text-danger"></span>
+
             </div>
 
             <div class="form-group">
                 <label for="PhoneNumber">Phone Number:</label>
                 <input type="tel" id="PhoneNumber" name="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
 
             <button type="submit" class="btn btn-primary">Create</button>
@@ -141,6 +149,8 @@
     }
 }
 <script>
+
+   
     function handleCategoryChange() {
         var category = document.getElementById("Category").value;
         var products = document.getElementById("ProductName").value;
@@ -150,7 +160,6 @@
         populateProductDropdown(myProducts)
       
     }
-
 
     function populateProductDropdown(products) {
         var dropdown = document.getElementById("ProductName");
@@ -200,15 +209,32 @@
         if(category!=null && category!='') {
             var shippingType = document.getElementById("ShippingType").value;
             var shippingCharge = 0;
+            var estimatedDate = new Date();
+
             if (shippingType == "Standard") { 
                 shippingCharge = 5;
+                estimatedDate.setDate(estimatedDate.getDate() + 5);
             }
             else if(shippingType == "TwoDays") {
                 shippingCharge = 10;
+                estimatedDate.setDate(estimatedDate.getDate() + 2);
+
             }
             else if(shippingType == "NextDay") {
                 shippingCharge = 15;
+                estimatedDate.setDate(estimatedDate.getDate() + 1);
+
             }
+
+            var year = estimatedDate.getFullYear();
+            var month = ('0' + (estimatedDate.getMonth() + 1)).slice(-2); // Months are zero-indexed
+            var day = ('0' + estimatedDate.getDate()).slice(-2);
+
+            // Format the date as "yyyy-MM-dd"
+            var formattedDate = year + '-' + month + '-' + day;
+
+
+            document.getElementById("EstimatedDelivery").value = formattedDate;
 
             document.getElementById("ShippingCharges").value = shippingCharge;
 

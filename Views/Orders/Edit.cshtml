@@ -1,84 +1,242 @@
-﻿@model CognisunPractical.Data.Domain.Order
+﻿@using Newtonsoft.Json;
+@model CognisunPractical.Models.Order.AddOrderViewModel;
+@using System.Text.Json;
 
 @{
     ViewData["Title"] = "Edit";
+    ViewBag.ProductNames = new List<SelectListItem>();
+    ViewData["AllProducts"] = ViewBag.AllProducts;
+    ViewData["TaxMaster"] = ViewBag.TaxMaster;
 }
 
-<h1>Edit</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Order</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2>Create Order</h2>
+        <form method="post" action="@Url.Action("Edit", "Orders")">
+            @Html.AntiForgeryToken()
 
-<h4>Order</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="OrderID" />
+            <input type="number" id="OrderID" name="OrderID" class="form-control" hidden />
             <div class="form-group">
-                <label asp-for="Category" class="control-label"></label>
-                <input asp-for="Category" class="form-control" readonly/>
-                <span asp-validation-for="Category" class="text-danger"></span>
+                <label for="Category">Category:</label>
+                <input type="text" asp-for=Category id="Category" name="Category" class="form-control" readonly />
             </div>
+
             <div class="form-group">
-                <label asp-for="Product" class="control-label"></label>
-                <input asp-for="Product" class="form-control" readonly />
-                <span asp-validation-for="Product" class="text-danger"></span>
+                <label for="ProductName">Product Name:</label>
+                <input type="text" asp-for=ProductName id="ProductName" name="ProductName" class="form-control" readonly />
             </div>
+
             <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
+                <label for="SKU">SKU:</label>
+                <input type="text" id="SKU" asp-for=SKU name="SKU" class="form-control" readonly />
             </div>
+
             <div class="form-group">
-                <label asp-for="Quantity" class="control-label"></label>
-                <input asp-for="Quantity" class="form-control" />
-                <span asp-validation-for="Quantity" class="text-danger"></span>
+                <label for="Description">Description:</label>
+                <textarea id="Description" asp-for=Description name="Description" class="form-control" readonly></textarea>
             </div>
+
             <div class="form-group">
-                <label asp-for="ShippingType" class="control-label"></label>
-                <input asp-for="ShippingType" class="form-control" />
-                <span asp-validation-for="ShippingType" class="text-danger"></span>
+                <label for="Quantity">Quantity:</label>
+                <select id="Quantity" asp-for=Quantity name="Quantity" class="form-control" onchange="getShippingCharge()">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
             </div>
+
             <div class="form-group">
-                <label asp-for="TotalAmount" class="control-label"></label>
-                <input asp-for="TotalAmount" class="form-control" />
-                <span asp-validation-for="TotalAmount" class="text-danger"></span>
+                <label for="ShippingType">Shipping Type:</label>
+                <select id="ShippingType" asp-for=ShippingType name="ShippingType" class="form-control" onchange="getShippingCharge()">
+                    <option value="" disabled selected>Select Shipping Type</option>
+                    <option value="Standard">Standard (Five Days)</option>
+                    <option value="TwoDays">Two Days</option>
+                    <option value="NextDay">Next Day</option>
+
+                </select>
             </div>
+
             <div class="form-group">
-                <label asp-for="DeliveryDate" class="control-label"></label>
-                <input asp-for="DeliveryDate" class="form-control" />
-                <span asp-validation-for="DeliveryDate" class="text-danger"></span>
+                <label for="ShippingCharges">Shipping Charges:</label>
+                <input type="text" asp-for=ShippingCharges id="ShippingCharges" name="ShippingCharges" class="form-control" readonly />
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RecieveStatusUpdate" /> @Html.DisplayNameFor(model => model.RecieveStatusUpdate)
-                </label>
-            </div>
+
             <div class="form-group">
-                <label asp-for="SignatureRequired" class="control-label"></label>
-                <input asp-for="SignatureRequired" class="form-control" />
-                <span asp-validation-for="SignatureRequired" class="text-danger"></span>
+                <label for="TotalAmount">Total Amount:</label>
+                <input type="text" asp-for=TotalAmount id="TotalAmount" name="TotalAmount" class="form-control" readonly />
             </div>
+
             <div class="form-group">
-                <label asp-for="DateOfBirth" class="control-label"></label>
-                <input asp-for="DateOfBirth" class="form-control" />
-                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                <label for="ReceiveStatusUpdate" style="margin-right:30px">Receive Status Update:</label>
+                <input type="checkbox" asp-for=ReceiveStatusUpdate id="ReceiveStatusUpdate" name="ReceiveStatusUpdate" class="form-check-input" onchange="updateCheckboxValue(this)" />
             </div>
+
             <div class="form-group">
-                <label asp-for="PhoneNumber" class="control-label"></label>
-                <input asp-for="PhoneNumber" class="form-control" />
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                <label for="SigantureRequired" style="margin-right:30px">Signature Required:</label>
+                <input type="checkbox" asp-for=SigantureRequired id="SignatureRequired" name="SignatureRequired" class="form-check-input" onchange="updateCheckboxValue(this)" />
             </div>
+
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <label for="EstimatedDelivery">Estimated Delivery:</label>
+                <input type="date" asp-for=EstimatedDelivery id="EstimatedDelivery" name="EstimatedDelivery" class="form-control" />
             </div>
+
+            <div class="form-group">
+                <label for="CustomerName">Customer Name:</label>
+                <input type="text" asp-for=CustomerName id="CustomerName" name="CustomerName" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="DateOFBirth">Date of Birth:</label>
+                <input type="date" asp-for=DateOFBirth id="DateOFBirth" name="DateOFBirth" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="PhoneNumber">Phone Number:</label>
+                <input type="tel" asp-for=PhoneNumber id="PhoneNumber" name="PhoneNumber" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update</button>
         </form>
     </div>
-</div>
+</body>
+</html>
 
 <div>
     <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
+<script>
+
+    window.onload = function () {
+        console.log("hello")
+        populateFields();
+    };
+
+
+    function handleCategoryChange() {
+        var category = document.getElementById("Category").value;
+        var products = document.getElementById("ProductName").value;
+        var allProducts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["AllProducts"]));
+
+        var myProducts = allProducts.filter(x => x.Category == category);
+        populateProductDropdown(myProducts)
+
+    }
+
+    function populateProductDropdown(products) {
+        var dropdown = document.getElementById("ProductName");
+
+        // Clear existing options
+        dropdown.innerHTML = '<option value="">Select a Product</option>';
+
+        // Extract unique product names from the products
+        var uniqueProductNames = [...new Set(products.map(product => product.Name))];
+
+        // Create options for each product name
+        uniqueProductNames.forEach(function (productName) {
+            var option = document.createElement("option");
+            option.value = productName;
+            option.text = productName;
+            dropdown.appendChild(option);
+        });
+    }
+
+    function populateFields() {
+        var category = document.getElementById("Category").value;
+        var product = document.getElementById("ProductName").value
+
+        var allProducts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["AllProducts"]));
+
+        var myProduct = allProducts.find(x => x.Name == product);
+
+        document.getElementById("SKU").value = myProduct.SKU;
+
+        var netPrice = myProduct.Price - ((myProduct.Price * myProduct.Discount) / 100);
+
+        getShippingCharge();
+    }
+
+    function getShippingCharge() {
+        var category = document.getElementById("Category").value;
+        var product = document.getElementById("ProductName").value
+
+        var allProducts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["AllProducts"]));
+
+
+        if (category != null && category != '') {
+            var shippingType = document.getElementById("ShippingType").value;
+            var shippingCharge = 0;
+
+            
+            var estimatedDate = new Date();
+
+            if (shippingType == "Standard") { 
+                shippingCharge = 5;
+                estimatedDate.setDate(estimatedDate.getDate() + 5);
+            }
+            else if(shippingType == "TwoDays") {
+                shippingCharge = 10;
+                estimatedDate.setDate(estimatedDate.getDate() + 2);
+
+            }
+            else if(shippingType == "NextDay") {
+                shippingCharge = 15;
+                estimatedDate.setDate(estimatedDate.getDate() + 1);
+
+            }
+
+            var year = estimatedDate.getFullYear();
+            var month = ('0' + (estimatedDate.getMonth() + 1)).slice(-2); // Months are zero-indexed
+            var day = ('0' + estimatedDate.getDate()).slice(-2);
+
+            // Format the date as "yyyy-MM-dd"
+            var formattedDate = year + '-' + month + '-' + day;
+
+
+            document.getElementById("EstimatedDelivery").value = formattedDate;
+
+
+            document.getElementById("ShippingCharges").value = shippingCharge;
+            var myProduct = allProducts.find(x => x.Name == product);
+
+
+
+            var netPrice = myProduct.Price - ((myProduct.Price * myProduct.Discount) / 100);
+
+            var qty = document.getElementById("Quantity").value;
+
+            var allTaxes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["TaxMaster"]));
+
+            var myTax = allTaxes.find(x => x.Category = category).TaxValue;
+
+
+            if (shippingCharge != null && netPrice != null && myTax != null && qty != null) {
+
+                var totalAmount = (Number(netPrice) + ((Number(netPrice) * Number(myTax)) / 100)) * Number(qty);
+
+                var totalCharge = Number(totalAmount) + Number(shippingCharge);
+
+                document.getElementById("TotalAmount").value = totalCharge;
+            }
+        }
+    }
+
+    function updateCheckboxValue(checkbox) {
+        // Update the checkbox value to true or false
+        checkbox.value = checkbox.checked.toString();
+    }
+</script>

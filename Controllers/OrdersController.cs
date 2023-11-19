@@ -96,7 +96,7 @@ namespace CognisunPractical.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(CreateAsync));
+            return RedirectToAction(nameof(Create));
         }
 
         // GET: Orders/Edit/5
@@ -112,14 +112,48 @@ namespace CognisunPractical.Controllers
             {
                 return NotFound();
             }
-            return View(order);
+
+            var products = await _context.ProductMasters.ToListAsync();
+            var tax_details = await _context.TaxMaster.ToListAsync();
+            //var categories = await _context.Database.
+
+            ViewBag.AllProducts = products;
+            ViewBag.TaxMaster = tax_details;
+
+            // Serialize the data and pass it to ViewBag
+            ViewBag.CategoryProducts = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Electronics", Text = "Electronics" },
+                new SelectListItem { Value = "Cosmetics", Text = "Cosmetics" },
+                new SelectListItem { Value = "Medicines", Text = "Medicines" },
+                new SelectListItem { Value = "Clothing", Text = "Clothing" },
+                // Add more items as needed
+            };
+
+            var myorder = new AddOrderViewModel();
+            myorder.Id = order.OrderID;
+            myorder.Category = order.Category;
+            myorder.ProductName = order.Product;
+            myorder.PhoneNumber = order.PhoneNumber;
+            myorder.DateOFBirth = order.DateOfBirth;
+            myorder.SigantureRequired = order.SignatureRequired;
+            myorder.EstimatedDelivery = order.DeliveryDate;
+            myorder.Description = order.Description;
+            myorder.Quantity = (int)order.Quantity;
+            myorder.ReceiveStatusUpdate = (bool)order.RecieveStatusUpdate;
+            myorder.TotalAmount = order.TotalAmount;
+            myorder.ShippingType = order.ShippingType;
+            //myorder.SKU = order.SKU;
+            myorder.CustomerName = order.CustomerName; 
+
+            return View(myorder);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Order order)
+        public async Task<IActionResult> Edit(int id, AddOrderViewModel order)
         {
-            if (id != order.OrderID)
+            if (id != order.Id)
             {
                 return NotFound();
             }
@@ -131,16 +165,17 @@ namespace CognisunPractical.Controllers
                     var myorder = new Order();
                     myorder.OrderID = id;
                     myorder.Category = order.Category;
-                    myorder.Product = order.Product;
+                    myorder.Product = order.ProductName;
                     myorder.PhoneNumber = order.PhoneNumber;
-                    myorder.DateOfBirth = order.DateOfBirth;
-                    myorder.SignatureRequired = order.SignatureRequired;
-                    myorder.DeliveryDate = order.DeliveryDate;
+                    myorder.DateOfBirth = order.DateOFBirth;
+                    myorder.SignatureRequired = order.SigantureRequired;
+                    myorder.DeliveryDate = order.EstimatedDelivery;
                     myorder.Description = order.Description;
                     myorder.Quantity = (int)order.Quantity;
-                    myorder.RecieveStatusUpdate = (bool)order.RecieveStatusUpdate;
+                    myorder.RecieveStatusUpdate = (bool)order.ReceiveStatusUpdate;
                     myorder.TotalAmount = order.TotalAmount;
                     myorder.ShippingType = order.ShippingType;
+                    myorder.CustomerName = order.CustomerName;
 
 
                     _context.Update(myorder);
@@ -148,7 +183,7 @@ namespace CognisunPractical.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrderExists(order.OrderID))
+                    if (!OrderExists(order.Id))
                     {
                         return NotFound();
                     }

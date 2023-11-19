@@ -1,0 +1,84 @@
+﻿@model CognisunPractical.Data.Domain.Order
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Order</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="OrderID" />
+            <div class="form-group">
+                <label asp-for="Category" class="control-label"></label>
+                <input asp-for="Category" class="form-control" readonly/>
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Product" class="control-label"></label>
+                <input asp-for="Product" class="form-control" readonly />
+                <span asp-validation-for="Product" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Quantity" class="control-label"></label>
+                <input asp-for="Quantity" class="form-control" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ShippingType" class="control-label"></label>
+                <input asp-for="ShippingType" class="form-control" />
+                <span asp-validation-for="ShippingType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TotalAmount" class="control-label"></label>
+                <input asp-for="TotalAmount" class="form-control" />
+                <span asp-validation-for="TotalAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DeliveryDate" class="control-label"></label>
+                <input asp-for="DeliveryDate" class="form-control" />
+                <span asp-validation-for="DeliveryDate" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="RecieveStatusUpdate" /> @Html.DisplayNameFor(model => model.RecieveStatusUpdate)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="SignatureRequired" class="control-label"></label>
+                <input asp-for="SignatureRequired" class="form-control" />
+                <span asp-validation-for="SignatureRequired" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateOfBirth" class="control-label"></label>
+                <input asp-for="DateOfBirth" class="form-control" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

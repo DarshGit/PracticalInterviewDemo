@@ -1,0 +1,234 @@
+﻿@using Newtonsoft.Json;
+@model CognisunPractical.Models.Order.AddOrderViewModel;
+@using System.Text.Json;
+
+@{
+    ViewData["Title"] = "Create";
+    ViewBag.ProductNames = new List<SelectListItem>();
+    ViewData["AllProducts"] = ViewBag.AllProducts;
+    ViewData["TaxMaster"] = ViewBag.TaxMaster;
+
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Order</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2>Create Order</h2>
+        <form method="post" action="@Url.Action("Create", "Orders")">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label for="Category">Category:</label>
+                @Html.DropDownListFor(model => model.Category, ViewBag.CategoryProducts as List<SelectListItem>, "Select a Category", new { @class = "form-control" , onchange = "handleCategoryChange()"})
+            </div>
+
+            <div class="form-group">
+                <label for="ProductName">Product Name:</label>
+                @Html.DropDownListFor(model => model.ProductName, ViewBag.ProductNames as List<SelectListItem>, "Select a Product", new { @class = "form-control", onchange = "populateFields()"})
+            </div>
+
+            <div class="form-group">
+                <label for="SKU">SKU:</label>
+                <input type="text" id="SKU" name="SKU" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="Description">Description:</label>
+                <textarea id="Description" name="Description" class="form-control" readonly></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="Price">Price:</label>
+                <input type="text" id="Price" name="Price" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="Discount">Discount:</label>
+                <input type="text" id="Discount" name="Discount" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="NetPrice">Net Price:</label>
+                <input type="text" id="NetPrice" name="NetPrice" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="Tax">Tax:</label>
+                <input type="text" id="Tax" name="Tax" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="Quantity">Quantity:</label>
+                <select id="Quantity" name="Quantity" class="form-control" onchange="getShippingCharge()"> 
+                    <option value="" disabled selected>Select Quantity</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ShippingType">Shipping Type:</label>
+                <select id="ShippingType" name="ShippingType" class="form-control" onchange="getShippingCharge()">
+                    <option value="" disabled selected>Select Shipping Type</option>
+                    <option value="Standard">Standard (Five Days)</option>
+                    <option value="TwoDays">Two Days</option>
+                    <option value="NextDay">Next Day</option>
+                    
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ShippingCharges">Shipping Charges:</label>
+                <input type="text" id="ShippingCharges" name="ShippingCharges" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="TotalAmount">Total Amount:</label>
+                <input type="text" id="TotalAmount" name="TotalAmount" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="ReceiveStatusUpdate">Receive Status Update:</label>
+                <input type="checkbox" id="ReceiveStatusUpdate" name="ReceiveStatusUpdate" class="form-check-input" onchange="updateCheckboxValue(this)" />
+            </div>
+
+            <div class="form-group">
+                <label for="SigantureRequired">Signature Required:</label>
+                <input type="checkbox" id="SignatureRequired" name="SignatureRequired" class="form-check-input" onchange="updateCheckboxValue(this)" />
+            </div>
+
+            <div class="form-group">
+                <label for="EstimatedDelivery">Estimated Delivery:</label>
+                <input type="date" id="EstimatedDelivery" name="EstimatedDelivery" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="CustomerName">Customer Name:</label>
+                <input type="text" id="CustomerName" name="CustomerName" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="DateOFBirth">Date of Birth:</label>
+                <input type="date" id="DateOFBirth" name="DateOFBirth" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="PhoneNumber">Phone Number:</label>
+                <input type="tel" id="PhoneNumber" name="PhoneNumber" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+    </div>
+</body>
+</html>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+<script>
+    function handleCategoryChange() {
+        var category = document.getElementById("Category").value;
+        var products = document.getElementById("ProductName").value;
+        var allProducts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["AllProducts"]));
+
+        var myProducts = allProducts.filter(x => x.Category == category);
+        populateProductDropdown(myProducts)
+      
+    }
+
+
+    function populateProductDropdown(products) {
+        var dropdown = document.getElementById("ProductName");
+
+        // Clear existing options
+        dropdown.innerHTML = '<option value="">Select a Product</option>';
+
+        // Extract unique product names from the products
+        var uniqueProductNames = [...new Set(products.map(product => product.Name))];
+
+        // Create options for each product name
+        uniqueProductNames.forEach(function (productName) {
+            var option = document.createElement("option");
+            option.value = productName;
+            option.text = productName;
+            dropdown.appendChild(option);
+        });
+    }
+
+    function populateFields() {
+        var category = document.getElementById("Category").value;
+        var product = document.getElementById("ProductName").value
+
+        var allTaxes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["TaxMaster"]));
+        
+        var myTax = allTaxes.find(x => x.Category = category).TaxValue;
+
+        var allProducts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["AllProducts"]));
+
+        var myProduct = allProducts.find(x => x.Name == product);
+
+        document.getElementById("SKU").value = myProduct.SKU;
+        document.getElementById("Description").value = myProduct.Description;
+        document.getElementById("Price").value = myProduct.Price;
+        document.getElementById("Discount").value = myProduct.Discount;
+        document.getElementById("Tax").value = myTax;
+
+        var netPrice = myProduct.Price - ((myProduct.Price * myProduct.Discount) / 100);
+
+        document.getElementById("NetPrice").value = netPrice;
+    }
+
+    function getShippingCharge()
+    {
+        var category = document.getElementById("Category").value;
+
+        if(category!=null && category!='') {
+            var shippingType = document.getElementById("ShippingType").value;
+            var shippingCharge = 0;
+            if (shippingType == "Standard") { 
+                shippingCharge = 5;
+            }
+            else if(shippingType == "TwoDays") {
+                shippingCharge = 10;
+            }
+            else if(shippingType == "NextDay") {
+                shippingCharge = 15;
+            }
+
+            document.getElementById("ShippingCharges").value = shippingCharge;
+
+            var netPrice = document.getElementById("NetPrice").value;
+            var tax = document.getElementById("Tax").value
+            var qty = document.getElementById("Quantity").value;
+
+            if (shippingCharge!=null && netPrice != null && tax != null && qty != null) {
+   
+                var totalAmount = (Number(netPrice)+ ((Number(netPrice) * Number(tax)) / 100)) * Number(qty);
+
+                var totalCharge = Number(totalAmount) + Number(shippingCharge);
+
+                document.getElementById("TotalAmount").value = totalCharge;
+            }
+        }
+    }
+
+    function updateCheckboxValue(checkbox) {
+        // Update the checkbox value to true or false
+        checkbox.value = checkbox.checked.toString();
+    }
+</script>
